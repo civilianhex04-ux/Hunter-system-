@@ -140,6 +140,10 @@
   .weight-entry{ display:flex; justify-content:space-between; font-size:13px; color:var(--text-dim); }
   .weight-entry span:last-child{ color:var(--text); }
 
+  /* refresh button */
+  .refresh-btn{ margin-top:10px; padding:8px 12px; font-size:11px; background:rgba(139,92,246,0.15); border:1px solid var(--violet); color:var(--violet); cursor:pointer; clip-path: polygon(0 3px, 3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%); }
+  .refresh-btn:hover{ background:rgba(139,92,246,0.3); }
+
   /* ---- overlay notification (signature element) ---- */
   #overlay{
     position:fixed; inset:0; background:rgba(3,5,10,0.72); backdrop-filter: blur(3px);
@@ -174,34 +178,97 @@
 const STORAGE_KEY = 'hunter-state-v1';
 const LEVEL_XP = 250;
 
-// Fixed 7-day rotation: James Lee (speed/explosiveness) + Gun Park (strength/conditioning) program
-const WEEKLY_PROGRAM = [
-  { title:'Day 1 — Strength + Explosive Power', subtitle:'Gun Park Style', isBoss:false, quests:[
-    { id:'d1-warm', name:'Warm-Up', meta:'Jump rope 3 min · Mobility (hips, shoulders, ankles)', xp:20, stats:{AGI:1} },
-    { id:'d1-strength', name:'Strength Block', meta:'Squats 5×5 · Pull-ups 5×max · Push-ups 5×5–10 · Romanian deadlift 4×6 · Farmer carries 4×40m', xp:70, stats:{STR:4, VIT:2} },
-    { id:'d1-explosive', name:'Explosive Block', meta:'Box jumps 5×3 · Medicine ball throws 4×5', xp:50, stats:{STR:2, AGI:2} }
-  ]},
-  { title:'Day 2 — Speed + Footwork', subtitle:'James Lee Style', isBoss:false, quests:[
-    { id:'d2-footwork', name:'Footwork Drills', meta:'Ladder drills 10min · Shadow boxing with movement 5×3min · Angle exits 10min · Sprint starts 10×20m', xp:60, stats:{AGI:3, TEC:1} },
-    { id:'d2-skill', name:'Fighting Skill', meta:'Jab-cross movement 5 rounds · Defense slips + counters 5 rounds', xp:60, stats:{TEC:3, AGI:1} }
-  ]},
-  { title:'Day 3 — Endurance + Conditioning', subtitle:'Gun Park Style — clear one trial', isBoss:false, quests:[
-    { id:'d3-run', name:'Option A: Steady Run', meta:'5–8km steady pace', xp:90, stats:{END:4}, group:'d3' },
-    { id:'d3-fight', name:'Option B: Fight Conditioning', meta:'Heavy bag 5×3min · Burpees 5×15 · Kettlebell swings 5×20 · Jump rope 10min', xp:90, stats:{END:3, STR:1}, group:'d3' }
-  ]},
-  { title:'Day 4 — Upper Body Strength + Athleticism', subtitle:'', isBoss:false, quests:[
-    { id:'d4-upper', name:'Upper Strength', meta:'Overhead press 4×6 · Weighted pull-ups 4×6 · Dips 4×10 · Rows 4×8 · Push-ups 100 total (broken sets)', xp:80, stats:{STR:4} },
-    { id:'d4-core', name:'Core', meta:'Hanging leg raises 4×12 · Planks 3×1min', xp:40, stats:{VIT:3} }
-  ]},
-  { title:'Day 5 — Martial Arts Day', subtitle:'Pick a real combat sport: Boxing, Muay Thai, Kickboxing, MMA, or BJJ', isBoss:false, quests:[
-    { id:'d5-session', name:'Combat Sport Session', meta:'Technique work · Controlled sparring · Conditioning', xp:130, stats:{TEC:3, AGI:2, END:2} }
-  ]},
-  { title:'Day 6 — Monster Mode Conditioning', subtitle:'Gate Trial', isBoss:true, quests:[
-    { id:'d6-circuit', name:'Monster Mode Circuit', meta:'5 rounds: 20 push-ups · 20 squats · 10 pull-ups · 20 sit-ups · 200m sprint. Rest 2–3min between rounds.', xp:220, stats:{STR:3, AGI:3, VIT:2, END:3} }
-  ]},
-  { title:'Day 7 — Recovery', subtitle:'', isBoss:false, quests:[
-    { id:'d7-recovery', name:'Active Recovery', meta:'Walking · Stretching · Mobility · Light swim or cycle', xp:30, stats:{VIT:2} }
-  ]}
+// MULTIPLE WORKOUT SETS - Randomized each week
+const WORKOUT_SETS = [
+  // SET 1: Gun Park + James Lee (Original)
+  [
+    { title:'Day 1 — Strength + Explosive Power', subtitle:'Gun Park Style', isBoss:false, quests:[
+      { id:'d1-warm', name:'Warm-Up', meta:'Jump rope 3 min · Mobility (hips, shoulders, ankles)', xp:20, stats:{AGI:1} },
+      { id:'d1-strength', name:'Strength Block', meta:'Squats 5×5 · Pull-ups 5×max · Push-ups 5×5–10 · Romanian deadlift 4×6 · Farmer carries 4×40m', xp:70, stats:{STR:4, VIT:2} },
+      { id:'d1-explosive', name:'Explosive Block', meta:'Box jumps 5×3 · Medicine ball throws 4×5', xp:50, stats:{STR:2, AGI:2} }
+    ]},
+    { title:'Day 2 — Speed + Footwork', subtitle:'James Lee Style', isBoss:false, quests:[
+      { id:'d2-footwork', name:'Footwork Drills', meta:'Ladder drills 10min · Shadow boxing with movement 5×3min · Angle exits 10min · Sprint starts 10×20m', xp:60, stats:{AGI:3, TEC:1} },
+      { id:'d2-skill', name:'Fighting Skill', meta:'Jab-cross movement 5 rounds · Defense slips + counters 5 rounds', xp:60, stats:{TEC:3, AGI:1} }
+    ]},
+    { title:'Day 3 — Endurance + Conditioning', subtitle:'Gun Park Style — clear one trial', isBoss:false, quests:[
+      { id:'d3-run', name:'Option A: Steady Run', meta:'5–8km steady pace', xp:90, stats:{END:4}, group:'d3' },
+      { id:'d3-fight', name:'Option B: Fight Conditioning', meta:'Heavy bag 5×3min · Burpees 5×15 · Kettlebell swings 5×20 · Jump rope 10min', xp:90, stats:{END:3, STR:1}, group:'d3' }
+    ]},
+    { title:'Day 4 — Upper Body Strength + Athleticism', subtitle:'', isBoss:false, quests:[
+      { id:'d4-upper', name:'Upper Strength', meta:'Overhead press 4×6 · Weighted pull-ups 4×6 · Dips 4×10 · Rows 4×8 · Push-ups 100 total (broken sets)', xp:80, stats:{STR:4} },
+      { id:'d4-core', name:'Core', meta:'Hanging leg raises 4×12 · Planks 3×1min', xp:40, stats:{VIT:3} }
+    ]},
+    { title:'Day 5 — Martial Arts Day', subtitle:'Pick a real combat sport: Boxing, Muay Thai, Kickboxing, MMA, or BJJ', isBoss:false, quests:[
+      { id:'d5-session', name:'Combat Sport Session', meta:'Technique work · Controlled sparring · Conditioning', xp:130, stats:{TEC:3, AGI:2, END:2} }
+    ]},
+    { title:'Day 6 — Monster Mode Conditioning', subtitle:'Gate Trial', isBoss:true, quests:[
+      { id:'d6-circuit', name:'Monster Mode Circuit', meta:'5 rounds: 20 push-ups · 20 squats · 10 pull-ups · 20 sit-ups · 200m sprint. Rest 2–3min between rounds.', xp:220, stats:{STR:3, AGI:3, VIT:2, END:3} }
+    ]},
+    { title:'Day 7 — Recovery', subtitle:'', isBoss:false, quests:[
+      { id:'d7-recovery', name:'Active Recovery', meta:'Walking · Stretching · Mobility · Light swim or cycle', xp:30, stats:{VIT:2} }
+    ]}
+  ],
+
+  // SET 2: High Intensity Mixed Training
+  [
+    { title:'Day 1 — Power Endurance Mix', subtitle:'Explosive Strength Focus', isBoss:false, quests:[
+      { id:'d1-warm', name:'Dynamic Warm-Up', meta:'10 min light cardio · Dynamic stretching · Activation drills', xp:25, stats:{AGI:1, END:1} },
+      { id:'d1-power', name:'Power Lifting Block', meta:'Clean & jerk 6×3 · Front squats 5×4 · Dumbbell snatches 4×8', xp:75, stats:{STR:5, AGI:1} },
+      { id:'d1-cardio', name:'Finisher', meta:'Rowing machine 3×3min · Battle ropes 3×30sec', xp:55, stats:{END:2, STR:1} }
+    ]},
+    { title:'Day 2 — Speed Agility Circuit', subtitle:'James Lee Inspired', isBoss:false, quests:[
+      { id:'d2-agility', name:'Cone Drills', meta:'T-drill 5 rounds · Shuttle runs 5×50m · Lateral movements 10min', xp:65, stats:{AGI:4, TEC:1} },
+      { id:'d2-boxing', name:'Boxing Combinations', meta:'Double end bag 6 rounds · Speed bag 5 rounds · Combinations on pads', xp:65, stats:{TEC:3, AGI:1} }
+    ]},
+    { title:'Day 3 — Cardio Choice', subtitle:'Pick your burn — clear one', isBoss:false, quests:[
+      { id:'d3-bike', name:'Option A: Bike Sprint', meta:'15 min intervals: 30sec sprint / 90sec easy', xp:95, stats:{END:4}, group:'d3' },
+      { id:'d3-crossfit', name:'Option B: CrossFit Metcon', meta:'For time: 30 cal row · 20 burpees · 40 double unders · 20 wall balls 14kg', xp:95, stats:{END:3, STR:2}, group:'d3' }
+    ]},
+    { title:'Day 4 — Hypertrophy Push', subtitle:'Size & Strength', isBoss:false, quests:[
+      { id:'d4-chest', name:'Chest Focus', meta:'Barbell bench 4×6 · Incline dumbbell 4×8 · Cable flies 3×12', xp:85, stats:{STR:4, VIT:1} },
+      { id:'d4-abs', name:'Core Blaster', meta:'Ab wheel 4×10 · Cable crunches 4×15 · Pallof press 3×12', xp:45, stats:{VIT:3} }
+    ]},
+    { title:'Day 5 — Combat Training', subtitle:'Kickboxing or Muay Thai Class', isBoss:false, quests:[
+      { id:'d5-combat', name:'Full Combat Session', meta:'Pad work · Heavy bag · Light sparring · Conditioning rounds', xp:135, stats:{TEC:3, AGI:2, END:2, STR:1} }
+    ]},
+    { title:'Day 6 — Beast Mode Test', subtitle:'Gate Trial - Ultimate Challenge', isBoss:true, quests:[
+      { id:'d6-beast', name:'Beast Mode Gauntlet', meta:'3 rounds: 50 push-ups · 40 squats · 30 pull-ups · 20 handstand push-ups · 10 muscle-ups. Minimal rest.', xp:250, stats:{STR:4, AGI:2, VIT:3, END:4, TEC:1} }
+    ]},
+    { title:'Day 7 — Active Recovery', subtitle:'', isBoss:false, quests:[
+      { id:'d7-recovery', name:'Mobility Work', meta:'Foam rolling · Yoga · Stretching · Breathing work', xp:35, stats:{VIT:3, END:1} }
+    ]}
+  ],
+
+  // SET 3: Calisthenics Mastery
+  [
+    { title:'Day 1 — Upper Body Calisthenics', subtitle:'Bodyweight Strength', isBoss:false, quests:[
+      { id:'d1-warm', name:'Warm-Up Routine', meta:'Arm circles · Push-up progressions · Band stretches', xp:20, stats:{VIT:1} },
+      { id:'d1-push', name:'Push Training', meta:'Weighted pull-ups 5×5 · Dips 5×8 · Diamond push-ups 5×10 · Pike push-ups 4×8', xp:75, stats:{STR:4, VIT:2} },
+      { id:'d1-holds', name:'Static Holds', meta:'Handstand hold 4×30sec · Hollow body hold 4×45sec · Plank 3×60sec', xp:50, stats:{VIT:3, STR:1} }
+    ]},
+    { title:'Day 2 — Movement Mastery', subtitle:'Flow & Skill Work', isBoss:false, quests:[
+      { id:'d2-movement', name:'Movement Flow', meta:'Parkour basics 10min · Vaulting drills · Movement transitions', xp:60, stats:{AGI:3, TEC:2} },
+      { id:'d2-skill', name:'Skill Progressions', meta:'L-sit progressions · Front lever holds · Handstand practice 15min', xp:65, stats:{TEC:4, VIT:1} }
+    ]},
+    { title:'Day 3 — Cardio Options', subtitle:'Pick your path', isBoss:false, quests:[
+      { id:'d3-run', name:'Option A: Trail Run', meta:'8–10km trail running with elevation', xp:95, stats:{END:4, AGI:1}, group:'d3' },
+      { id:'d3-rope', name:'Option B: Jump Rope Marathon', meta:'30 min continuous jumping · Mix speeds & patterns', xp:95, stats:{END:3, AGI:2}, group:'d3' }
+    ]},
+    { title:'Day 4 — Lower Body Calisthenics', subtitle:'', isBoss:false, quests:[
+      { id:'d4-legs', name:'Leg Strength', meta:'Pistol squat progressions 5×5 · Single-leg deadlifts 5×6 · Jump squats 5×12', xp:85, stats:{STR:4, AGI:1} },
+      { id:'d4-burn', name:'Leg Burn', meta:'Bulgarian split squats 4×10 · Glute bridges 4×15 · Step-ups 4×20', xp:45, stats:{VIT:3, END:1} }
+    ]},
+    { title:'Day 5 — Wrestling or BJJ', subtitle:'Grappling Mastery', isBoss:false, quests:[
+      { id:'d5-grapple', name:'Grappling Session', meta:'Takedown drills · Position work · Live rolling · Conditioning', xp:140, stats:{TEC:4, STR:2, END:2, AGI:1} }
+    ]},
+    { title:'Day 6 — Superhuman Trial', subtitle:'Gate Trial - Max Out', isBoss:true, quests:[
+      { id:'d6-superhuman', name:'Peak Performance', meta:'AMRAP 20min: 3 muscle-ups · 6 handstand push-ups · 9 burpees. Last man standing wins.', xp:240, stats:{STR:4, AGI:3, VIT:3, END:3, TEC:2} }
+    ]},
+    { title:'Day 7 — Rest & Reflect', subtitle:'', isBoss:false, quests:[
+      { id:'d7-recovery', name:'Meditation & Mobility', meta:'Guided stretching · Breathing exercises · Nature walk', xp:30, stats:{VIT:2, END:1} }
+    ]}
+  ]
 ];
 
 const RANKS = [
@@ -215,6 +282,7 @@ const RANKS = [
 
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 function daysBetween(a,b){ return Math.round((new Date(b) - new Date(a)) / 86400000); }
+function getWeekNumber(){ return Math.floor((new Date() - new Date(2026,0,1)) / (7*86400000)); }
 
 function defaultState(){
   return {
@@ -225,7 +293,8 @@ function defaultState(){
     stats:{STR:10, AGI:10, VIT:10, END:10, TEC:10},
     streak:0,
     lastActiveDate:null,
-    cycleDay:1, // 1-7, position in the weekly program
+    cycleDay:1,
+    workoutSetIndex:0,
     weightLog:[],
     today:{ date:null, quests:[] }
   };
@@ -233,19 +302,26 @@ function defaultState(){
 
 let state = null;
 
+function getCurrentWorkoutSet(){
+  const weekNum = getWeekNumber();
+  state.workoutSetIndex = weekNum % WORKOUT_SETS.length;
+  return WORKOUT_SETS[state.workoutSetIndex];
+}
+
 function loadDayQuests(dayIndex){
-  return WEEKLY_PROGRAM[dayIndex-1].quests.map(q=>({...q, done:false, locked:false}));
+  const workoutSet = getCurrentWorkoutSet();
+  return workoutSet[dayIndex-1].quests.map(q=>({...q, done:false, locked:false}));
 }
 
 function ensureToday(){
   const t = todayStr();
   if(state.today.date !== t){
     if(state.today.date){
-      // advance the cycle by however many days have actually passed
       const diff = Math.max(1, daysBetween(state.today.date, t));
       state.cycleDay = (((state.cycleDay - 1 + diff) % 7) + 7) % 7 + 1;
     }
     state.today = { date:t, quests: loadDayQuests(state.cycleDay) };
+    save();
   }
 }
 
@@ -266,7 +342,6 @@ function load(){
   }
   ensureToday();
   render();
-  save();
 }
 
 function showNotif(title, lines, gold=false){
@@ -283,7 +358,9 @@ function closeNotif(){ document.getElementById('overlay').classList.remove('show
 function completeQuest(id){
   const q = state.today.quests.find(q=>q.id===id);
   if(!q || q.done || q.locked) return;
-  const isBossDay = WEEKLY_PROGRAM[state.cycleDay-1].isBoss;
+  const workoutSet = getCurrentWorkoutSet();
+  const dayProgram = workoutSet[state.cycleDay-1];
+  const isBossDay = dayProgram.isBoss;
   q.done = true;
   if(q.group){
     state.today.quests.forEach(sib=>{ if(sib.group===q.group && sib.id!==q.id) sib.locked = true; });
@@ -352,6 +429,17 @@ function updateProfile(field, value){
   render();
 }
 
+function refreshWorkout(){
+  // Force switch to next workout set
+  const weekNum = getWeekNumber();
+  state.workoutSetIndex = (state.workoutSetIndex + 1) % WORKOUT_SETS.length;
+  state.cycleDay = 1;
+  state.today = { date: todayStr(), quests: loadDayQuests(1) };
+  save();
+  render();
+  showNotif('SYSTEM OVERRIDE', ['Workout set rotated.', 'New training program initialized.']);
+}
+
 function render(){
   const level = getLevel(state.totalXP);
   const rank = getRank(level);
@@ -359,7 +447,8 @@ function render(){
   const xpPct = Math.round((xpInLevel/LEVEL_XP)*100);
   const s = state.stats;
 
-  const dayProgram = WEEKLY_PROGRAM[state.cycleDay-1];
+  const workoutSet = getCurrentWorkoutSet();
+  const dayProgram = workoutSet[state.cycleDay-1];
 
   const questsHtml = state.today.quests.map(q=>{
     const disabled = q.done || q.locked;
@@ -375,7 +464,7 @@ function render(){
     </div>`;
   }).join('');
 
-  const dayDots = WEEKLY_PROGRAM.map((d,i)=>{
+  const dayDots = workoutSet.map((d,i)=>{
     const n = i+1;
     const active = n===state.cycleDay;
     const colorStyle = active ? `color:${d.isBoss ? 'var(--gold)' : 'var(--blue)'};` : '';
@@ -385,6 +474,9 @@ function render(){
   const weightLogHtml = [...state.weightLog].reverse().map(e=>`
     <div class="weight-entry"><span>${e.date}</span><span>${e.weight} kg</span></div>
   `).join('') || `<div class="weight-entry"><span>No entries yet</span></div>`;
+
+  const setNames = ['Set I: Classic', 'Set II: High Intensity', 'Set III: Calisthenics'];
+  const currentSetName = setNames[state.workoutSetIndex];
 
   document.getElementById('app').innerHTML = `
     <div class="sys-panel glow">
@@ -409,7 +501,7 @@ function render(){
     </div>
 
     <div class="sys-panel ${dayProgram.isBoss?'violet glow':''}">
-      <div class="corner-tag">${dayProgram.isBoss?'GATE':'TODAY'}</div>
+      <div class="corner-tag">${dayProgram.isBoss?'GATE':'TODAY'} — ${currentSetName}</div>
       <div class="sec-title ${dayProgram.isBoss?'violet':''}">${dayProgram.title}</div>
       ${dayProgram.subtitle ? `<div class="quest-meta" style="margin:-6px 0 10px;">${dayProgram.subtitle}</div>` : ''}
       ${questsHtml}
@@ -424,6 +516,7 @@ function render(){
         <div class="field"><label>Weight (kg)</label><input type="number" step="0.1" value="${state.weight}" onchange="updateProfile('weight', this.value)"></div>
       </div>
       <div class="weight-log">${weightLogHtml}</div>
+      <button class="refresh-btn" onclick="refreshWorkout()">🔄 Switch Workout Set</button>
     </div>
 
     <div class="footer-row">
