@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>THE SYSTEM // Hunter Log</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #05070d;
+    --panel: #0d1424;
+    --panel-2: #101a30;
+    --line: #1c2a48;
+    --blue: #4f8bff;
+    --blue-dim: #2a4a8a;
+    --violet: #8b5cf6;
+    --gold: #f0b93a;
+    --text: #dbe4fb;
+    --text-dim: #6b7796;
+    --danger: #ef4b5c;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(79,139,255,0.12), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px),
+      var(--bg);
+    color:var(--text);
+    font-family:'Rajdhani', sans-serif;
+    min-height:100vh;
+    padding:28px 16px 80px;
+    display:flex;
+    justify-content:center;
+  }
+  .wrap{ width:100%; max-width:560px; display:flex; flex-direction:column; gap:18px; }
+
+  h1,h2,h3, .display{ font-family:'Orbitron', sans-serif; }
+  .mono{ font-family:'Share Tech Mono', monospace; letter-spacing:0.5px; }
+
+  /* ---- System Window panel: clipped corners + glow ---- */
+  .sys-panel{
+    position:relative;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border:1px solid var(--line);
+    clip-path: polygon(0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px));
+    padding:18px 20px;
+    box-shadow: 0 0 0 1px rgba(79,139,255,0.05), 0 10px 30px -12px rgba(0,0,0,0.6);
+  }
+  .sys-panel.glow{ box-shadow: 0 0 0 1px rgba(79,139,255,0.25), 0 0 24px -4px rgba(79,139,255,0.35), 0 10px 30px -12px rgba(0,0,0,0.7); }
+  .sys-panel.violet{ border-color:#3b2e63; }
+  .sys-panel.violet.glow{ box-shadow: 0 0 0 1px rgba(139,92,246,0.3), 0 0 26px -4px rgba(139,92,246,0.45), 0 10px 30px -12px rgba(0,0,0,0.7); }
+  .corner-tag{ position:absolute; top:6px; left:16px; font-size:10px; letter-spacing:3px; color:var(--text-dim); }
+
+  /* ---- Header / Hunter ID ---- */
+  .id-header{ display:flex; align-items:center; justify-content:space-between; gap:14px; }
+  .id-left{ display:flex; flex-direction:column; gap:4px; }
+  .hunter-name{ font-size:22px; font-weight:700; letter-spacing:1px; }
+  .hunter-title{ font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:2px; }
+  .rank-badge{
+    width:56px; height:56px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Orbitron'; font-weight:900; font-size:22px;
+    border:2px solid var(--rank-color, var(--blue));
+    color:var(--rank-color, var(--blue));
+    box-shadow: 0 0 16px -2px var(--rank-color, var(--blue));
+    background: rgba(255,255,255,0.02);
+  }
+
+  .lvl-row{ display:flex; align-items:baseline; justify-content:space-between; margin-top:14px; font-size:13px; color:var(--text-dim); }
+  .lvl-row b{ color:var(--text); font-size:14px; }
+  .xp-track{ height:10px; background:#0a1120; border:1px solid var(--line); margin-top:6px; clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 100%, 6px 100%); overflow:hidden; }
+  .xp-fill{ height:100%; background:linear-gradient(90deg, var(--blue-dim), var(--blue)); transition:width 0.6s ease; }
+
+  /* stat grid */
+  .stat-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-top:16px; }
+  .stat-box{ background:rgba(255,255,255,0.02); border:1px solid var(--line); padding:8px 10px; clip-path: polygon(0 6px, 6px 0, 100% 0, 100% 100%, 0 100%); }
+  .stat-box .k{ font-size:11px; color:var(--text-dim); letter-spacing:2px; }
+  .stat-box .v{ font-size:20px; font-weight:600; }
+
+  /* section titles */
+  .sec-title{ display:flex; align-items:center; gap:10px; font-size:13px; letter-spacing:3px; color:var(--text-dim); text-transform:uppercase; margin-bottom:10px; }
+  .sec-title::before{ content:''; width:8px; height:8px; background:var(--blue); transform:rotate(45deg); box-shadow:0 0 8px var(--blue); }
+  .sec-title.violet::before{ background:var(--violet); box-shadow:0 0 8px var(--violet); }
+
+  /* quest card */
+  .quest{ display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-top:1px solid var(--line); }
+  .quest:first-of-type{ border-top:none; }
+  .quest.done{ opacity:0.45; }
+  .quest.locked{ opacity:0.35; }
+  .quest.locked .quest-check{ border-color:var(--line); cursor:not-allowed; }
+  .quest-check{
+    width:26px; height:26px; flex:none; margin-top:2px;
+    border:2px solid var(--blue-dim); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+    transition: all 0.15s ease;
+  }
+  .quest-check:hover{ border-color:var(--blue); box-shadow:0 0 10px -2px var(--blue); }
+  .quest.done .quest-check{ background:var(--blue); border-color:var(--blue); }
+  .quest-body{ flex:1; }
+  .quest-tag{ font-size:10px; letter-spacing:2px; color:var(--text-dim); text-transform:uppercase; }
+  .quest-tag.hyper{ color:#6fc3ff; }
+  .quest-tag.strike{ color:#ff8a6f; }
+  .quest-tag.cond{ color:#8fe38a; }
+  .quest-name{ font-size:16px; font-weight:600; margin-top:2px; }
+  .quest-meta{ font-size:13px; color:var(--text-dim); margin-top:2px; }
+  .quest-reward{ font-size:12px; color:var(--gold); margin-top:4px; }
+
+  /* boss */
+  .boss-name{ font-size:19px; font-weight:700; font-family:'Orbitron'; color:#e9d9ff; }
+  .boss-desc{ font-size:14px; color:var(--text-dim); margin:8px 0 12px; line-height:1.5; }
+  .btn{
+    font-family:'Orbitron'; font-size:12px; letter-spacing:2px; text-transform:uppercase;
+    background:linear-gradient(180deg, var(--blue-dim), #15305e);
+    color:#dce8ff; border:1px solid var(--blue);
+    padding:10px 16px; cursor:pointer;
+    clip-path: polygon(0 6px, 6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+  }
+  .btn:hover{ box-shadow:0 0 14px -2px var(--blue); }
+  .btn:disabled{ opacity:0.35; cursor:not-allowed; box-shadow:none; }
+  .btn.violet{ background:linear-gradient(180deg, #3b2e63, #1e1638); border-color:var(--violet); color:#efe6ff; }
+  .btn.violet:hover{ box-shadow:0 0 16px -2px var(--violet); }
+
+  /* streak / footer row */
+  .footer-row{ display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--text-dim); }
+  .footer-row b{ color:var(--gold); }
+
+  /* profile / weight log */
+  .profile-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .field{ flex:1; min-width:110px; }
+  .field label{ font-size:10px; letter-spacing:2px; color:var(--text-dim); text-transform:uppercase; }
+  .field input{
+    width:100%; background:#0a1120; border:1px solid var(--line); color:var(--text);
+    font-family:'Share Tech Mono'; font-size:14px; padding:8px; margin-top:4px;
+  }
+  .field input:focus{ outline:none; border-color:var(--blue); }
+  .weight-log{ margin-top:12px; display:flex; flex-direction:column; gap:6px; max-height:120px; overflow-y:auto; }
+  .weight-entry{ display:flex; justify-content:space-between; font-size:13px; color:var(--text-dim); }
+  .weight-entry span:last-child{ color:var(--text); }
+
+  /* ---- overlay notification (signature element) ---- */
+  #overlay{
+    position:fixed; inset:0; background:rgba(3,5,10,0.72); backdrop-filter: blur(3px);
+    display:none; align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  #overlay.show{ display:flex; }
+  .notif{
+    width:100%; max-width:420px; background:linear-gradient(180deg, #0e1830, #070c18);
+    border:1px solid var(--blue); position:relative;
+    clip-path: polygon(0 16px, 16px 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px));
+    box-shadow: 0 0 0 1px rgba(79,139,255,0.25), 0 0 50px -6px rgba(79,139,255,0.5);
+    padding:26px 28px 22px;
+    animation: notifIn 0.35s ease;
+  }
+  .notif.gold{ border-color:var(--gold); box-shadow:0 0 0 1px rgba(240,185,58,0.3), 0 0 50px -6px rgba(240,185,58,0.55); }
+  @keyframes notifIn{ from{ opacity:0; transform:scale(0.92); } to{ opacity:1; transform:scale(1);} }
+  .notif-title{ font-family:'Orbitron'; font-weight:900; font-size:20px; letter-spacing:2px; color:#eaf1ff; text-align:center; }
+  .notif.gold .notif-title{ color:#ffe9b0; }
+  .notif-line{
+    font-size:15px; margin-top:14px; opacity:0; transform:translateY(6px);
+    animation: lineIn 0.4s ease forwards;
+  }
+  .notif-close{ display:block; margin:20px auto 0; }
+  @keyframes lineIn{ to{ opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">Loading system…</div>
+<div id="overlay"><div class="notif" id="notif"></div></div>
+
+<script>
+const STORAGE_KEY = 'hunter-state-v1';
+const LEVEL_XP = 250;
+
+// Fixed 7-day rotation: James Lee (speed/explosiveness) + Gun Park (strength/conditioning) program
+const WEEKLY_PROGRAM = [
+  { title:'Day 1 — Strength + Explosive Power', subtitle:'Gun Park Style', isBoss:false, quests:[
+    { id:'d1-warm', name:'Warm-Up', meta:'Jump rope 3 min · Mobility (hips, shoulders, ankles)', xp:20, stats:{AGI:1} },
+    { id:'d1-strength', name:'Strength Block', meta:'Squats 5×5 · Pull-ups 5×max · Push-ups 5×5–10 · Romanian deadlift 4×6 · Farmer carries 4×40m', xp:70, stats:{STR:4, VIT:2} },
+    { id:'d1-explosive', name:'Explosive Block', meta:'Box jumps 5×3 · Medicine ball throws 4×5', xp:50, stats:{STR:2, AGI:2} }
+  ]},
+  { title:'Day 2 — Speed + Footwork', subtitle:'James Lee Style', isBoss:false, quests:[
+    { id:'d2-footwork', name:'Footwork Drills', meta:'Ladder drills 10min · Shadow boxing with movement 5×3min · Angle exits 10min · Sprint starts 10×20m', xp:60, stats:{AGI:3, TEC:1} },
+    { id:'d2-skill', name:'Fighting Skill', meta:'Jab-cross movement 5 rounds · Defense slips + counters 5 rounds', xp:60, stats:{TEC:3, AGI:1} }
+  ]},
+  { title:'Day 3 — Endurance + Conditioning', subtitle:'Gun Park Style — clear one trial', isBoss:false, quests:[
+    { id:'d3-run', name:'Option A: Steady Run', meta:'5–8km steady pace', xp:90, stats:{END:4}, group:'d3' },
+    { id:'d3-fight', name:'Option B: Fight Conditioning', meta:'Heavy bag 5×3min · Burpees 5×15 · Kettlebell swings 5×20 · Jump rope 10min', xp:90, stats:{END:3, STR:1}, group:'d3' }
+  ]},
+  { title:'Day 4 — Upper Body Strength + Athleticism', subtitle:'', isBoss:false, quests:[
+    { id:'d4-upper', name:'Upper Strength', meta:'Overhead press 4×6 · Weighted pull-ups 4×6 · Dips 4×10 · Rows 4×8 · Push-ups 100 total (broken sets)', xp:80, stats:{STR:4} },
+    { id:'d4-core', name:'Core', meta:'Hanging leg raises 4×12 · Planks 3×1min', xp:40, stats:{VIT:3} }
+  ]},
+  { title:'Day 5 — Martial Arts Day', subtitle:'Pick a real combat sport: Boxing, Muay Thai, Kickboxing, MMA, or BJJ', isBoss:false, quests:[
+    { id:'d5-session', name:'Combat Sport Session', meta:'Technique work · Controlled sparring · Conditioning', xp:130, stats:{TEC:3, AGI:2, END:2} }
+  ]},
+  { title:'Day 6 — Monster Mode Conditioning', subtitle:'Gate Trial', isBoss:true, quests:[
+    { id:'d6-circuit', name:'Monster Mode Circuit', meta:'5 rounds: 20 push-ups · 20 squats · 10 pull-ups · 20 sit-ups · 200m sprint. Rest 2–3min between rounds.', xp:220, stats:{STR:3, AGI:3, VIT:2, END:3} }
+  ]},
+  { title:'Day 7 — Recovery', subtitle:'', isBoss:false, quests:[
+    { id:'d7-recovery', name:'Active Recovery', meta:'Walking · Stretching · Mobility · Light swim or cycle', xp:30, stats:{VIT:2} }
+  ]}
+];
+
+const RANKS = [
+  { min:1, max:9, name:'E', color:'#7d8bb0' },
+  { min:10, max:19, name:'D', color:'#4f8bff' },
+  { min:20, max:29, name:'C', color:'#3adbc4' },
+  { min:30, max:39, name:'B', color:'#8b5cf6' },
+  { min:40, max:49, name:'A', color:'#ff6fa5' },
+  { min:50, max:9999, name:'S', color:'#f0b93a' }
+];
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function daysBetween(a,b){ return Math.round((new Date(b) - new Date(a)) / 86400000); }
+
+function defaultState(){
+  return {
+    name:'Hunter',
+    height:170,
+    weight:68,
+    totalXP:0,
+    stats:{STR:10, AGI:10, VIT:10, END:10, TEC:10},
+    streak:0,
+    lastActiveDate:null,
+    cycleDay:1, // 1-7, position in the weekly program
+    weightLog:[],
+    today:{ date:null, quests:[] }
+  };
+}
+
+let state = null;
+
+function loadDayQuests(dayIndex){
+  return WEEKLY_PROGRAM[dayIndex-1].quests.map(q=>({...q, done:false, locked:false}));
+}
+
+function ensureToday(){
+  const t = todayStr();
+  if(state.today.date !== t){
+    if(state.today.date){
+      // advance the cycle by however many days have actually passed
+      const diff = Math.max(1, daysBetween(state.today.date, t));
+      state.cycleDay = (((state.cycleDay - 1 + diff) % 7) + 7) % 7 + 1;
+    }
+    state.today = { date:t, quests: loadDayQuests(state.cycleDay) };
+  }
+}
+
+function getLevel(xp){ return Math.floor(xp/LEVEL_XP)+1; }
+function getRank(level){ return RANKS.find(r=>level>=r.min && level<=r.max) || RANKS[RANKS.length-1]; }
+
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.error('save failed', e); }
+}
+
+function load(){
+  try{
+    const res = localStorage.getItem(STORAGE_KEY);
+    state = res ? JSON.parse(res) : defaultState();
+  }catch(e){
+    state = defaultState();
+  }
+  ensureToday();
+  render();
+  save();
+}
+
+function showNotif(title, lines, gold=false){
+  const overlay = document.getElementById('overlay');
+  const notif = document.getElementById('notif');
+  notif.className = 'notif' + (gold ? ' gold' : '');
+  notif.innerHTML = `<div class="notif-title">${title}</div>` +
+    lines.map((l,i)=>`<div class="notif-line" style="animation-delay:${0.15 + i*0.28}s">${l}</div>`).join('') +
+    `<button class="btn notif-close" onclick="closeNotif()">Confirm</button>`;
+  overlay.classList.add('show');
+}
+function closeNotif(){ document.getElementById('overlay').classList.remove('show'); }
+
+function completeQuest(id){
+  const q = state.today.quests.find(q=>q.id===id);
+  if(!q || q.done || q.locked) return;
+  const isBossDay = WEEKLY_PROGRAM[state.cycleDay-1].isBoss;
+  q.done = true;
+  if(q.group){
+    state.today.quests.forEach(sib=>{ if(sib.group===q.group && sib.id!==q.id) sib.locked = true; });
+  }
+  const beforeLevel = getLevel(state.totalXP);
+  const beforeRank = getRank(beforeLevel).name;
+  state.totalXP += q.xp;
+  const statLines = [];
+  for(const [k,v] of Object.entries(q.stats)){
+    state.stats[k] = (state.stats[k]||0) + v;
+    statLines.push(`+${v} ${k}`);
+  }
+  const t = todayStr();
+  if(state.lastActiveDate === t){ /* no change */ }
+  else if(state.lastActiveDate && daysBetween(state.lastActiveDate, t) === 1){ state.streak += 1; }
+  else { state.streak = 1; }
+  state.lastActiveDate = t;
+
+  const afterLevel = getLevel(state.totalXP);
+  const afterRank = getRank(afterLevel).name;
+
+  save();
+  render();
+
+  const gold = isBossDay || afterRank !== beforeRank;
+  if(afterRank !== beforeRank){
+    showNotif('RANK UP', [
+      `Quest cleared: <b>${q.name}</b> (+${q.xp} XP)`,
+      `${statLines.join(', ')}`,
+      `Your rank has risen to <b>${afterRank}-RANK</b>.`
+    ], true);
+  } else if(isBossDay){
+    showNotif('GATE CLEARED', [
+      `<b>${q.name}</b> — subdued.`,
+      `+${q.xp} XP &nbsp; ${statLines.join(', ')}`,
+      afterLevel !== beforeLevel ? `Reached <b>Level ${afterLevel}</b>.` : ''
+    ].filter(Boolean), true);
+  } else if(afterLevel !== beforeLevel){
+    showNotif('LEVEL UP', [
+      `Quest cleared: <b>${q.name}</b> (+${q.xp} XP)`,
+      `${statLines.join(', ')}`,
+      `You have reached <b>Level ${afterLevel}</b>.`
+    ]);
+  } else {
+    showNotif('QUEST CLEARED', [
+      `<b>${q.name}</b>`,
+      `+${q.xp} XP &nbsp; ${statLines.join(', ')}`
+    ]);
+  }
+}
+
+function updateProfile(field, value){
+  if(field==='name') state.name = value || 'Hunter';
+  if(field==='height') state.height = parseFloat(value) || state.height;
+  if(field==='weight'){
+    const w = parseFloat(value);
+    if(w){
+      state.weight = w;
+      const t = todayStr();
+      const existing = state.weightLog.find(e=>e.date===t);
+      if(existing) existing.weight = w; else state.weightLog.push({date:t, weight:w});
+      state.weightLog = state.weightLog.slice(-10);
+    }
+  }
+  save();
+  render();
+}
+
+function render(){
+  const level = getLevel(state.totalXP);
+  const rank = getRank(level);
+  const xpInLevel = state.totalXP % LEVEL_XP;
+  const xpPct = Math.round((xpInLevel/LEVEL_XP)*100);
+  const s = state.stats;
+
+  const dayProgram = WEEKLY_PROGRAM[state.cycleDay-1];
+
+  const questsHtml = state.today.quests.map(q=>{
+    const disabled = q.done || q.locked;
+    return `
+    <div class="quest ${q.done?'done':''} ${q.locked?'locked':''}">
+      <div class="quest-check" onclick="${disabled?'':`completeQuest('${q.id}')`}">${q.done?'✓':q.locked?'—':''}</div>
+      <div class="quest-body">
+        <div class="quest-name">${q.name}</div>
+        <div class="quest-meta">${q.meta}</div>
+        <div class="quest-reward">+${q.xp} XP &nbsp; ${Object.entries(q.stats).map(([k,v])=>`+${v} ${k}`).join(' · ')}</div>
+        ${q.locked ? `<div class="quest-meta" style="color:var(--text-dim); font-style:italic;">Locked — you already cleared the other trial today.</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const dayDots = WEEKLY_PROGRAM.map((d,i)=>{
+    const n = i+1;
+    const active = n===state.cycleDay;
+    const colorStyle = active ? `color:${d.isBoss ? 'var(--gold)' : 'var(--blue)'};` : '';
+    return `<span class="mono" style="opacity:${active?1:0.35}; ${colorStyle}">D${n}</span>`;
+  }).join(' · ');
+
+  const weightLogHtml = [...state.weightLog].reverse().map(e=>`
+    <div class="weight-entry"><span>${e.date}</span><span>${e.weight} kg</span></div>
+  `).join('') || `<div class="weight-entry"><span>No entries yet</span></div>`;
+
+  document.getElementById('app').innerHTML = `
+    <div class="sys-panel glow">
+      <div class="corner-tag">HUNTER STATUS</div>
+      <div class="id-header">
+        <div class="id-left">
+          <div class="hunter-name">${state.name}</div>
+          <div class="hunter-title">Rising ${rank.name}-Rank Hunter</div>
+        </div>
+        <div class="rank-badge" style="--rank-color:${rank.color}">${rank.name}</div>
+      </div>
+      <div class="lvl-row"><span>LEVEL <b>${level}</b></span><span class="mono">${xpInLevel} / ${LEVEL_XP} XP</span></div>
+      <div class="xp-track"><div class="xp-fill" style="width:${xpPct}%"></div></div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="k">STR</div><div class="v mono">${s.STR}</div></div>
+        <div class="stat-box"><div class="k">AGI</div><div class="v mono">${s.AGI}</div></div>
+        <div class="stat-box"><div class="k">VIT</div><div class="v mono">${s.VIT}</div></div>
+        <div class="stat-box"><div class="k">END</div><div class="v mono">${s.END}</div></div>
+        <div class="stat-box"><div class="k">TEC (Technique)</div><div class="v mono">${s.TEC}</div></div>
+        <div class="stat-box"><div class="k">STREAK</div><div class="v mono">${state.streak}🔥</div></div>
+      </div>
+    </div>
+
+    <div class="sys-panel ${dayProgram.isBoss?'violet glow':''}">
+      <div class="corner-tag">${dayProgram.isBoss?'GATE':'TODAY'}</div>
+      <div class="sec-title ${dayProgram.isBoss?'violet':''}">${dayProgram.title}</div>
+      ${dayProgram.subtitle ? `<div class="quest-meta" style="margin:-6px 0 10px;">${dayProgram.subtitle}</div>` : ''}
+      ${questsHtml}
+      <div class="quest-meta" style="margin-top:14px; text-align:center;">${dayDots}</div>
+    </div>
+
+    <div class="sys-panel">
+      <div class="sec-title">Hunter Profile</div>
+      <div class="profile-row">
+        <div class="field"><label>Name</label><input value="${state.name}" onchange="updateProfile('name', this.value)"></div>
+        <div class="field"><label>Height (cm)</label><input type="number" value="${state.height}" onchange="updateProfile('height', this.value)"></div>
+        <div class="field"><label>Weight (kg)</label><input type="number" step="0.1" value="${state.weight}" onchange="updateProfile('weight', this.value)"></div>
+      </div>
+      <div class="weight-log">${weightLogHtml}</div>
+    </div>
+
+    <div class="footer-row">
+      <span>Total XP: <b>${state.totalXP}</b></span>
+      <span>Program Day <b>${state.cycleDay} / 7</b> — advances at midnight</span>
+    </div>
+  `;
+}
+
+load();
+</script>
+</body>
+</html>
