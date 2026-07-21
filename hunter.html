@@ -178,9 +178,9 @@
 const STORAGE_KEY = 'hunter-state-v1';
 const LEVEL_XP = 250;
 
-// MULTIPLE WORKOUT SETS - Randomized each week
+// MERGED WORKOUT SETS - 4 Different training programs
 const WORKOUT_SETS = [
-  // SET 1: Gun Park + James Lee (Original)
+  // SET 1: Original Gun Park + James Lee
   [
     { title:'Day 1 — Strength + Explosive Power', subtitle:'Gun Park Style', isBoss:false, quests:[
       { id:'d1-warm', name:'Warm-Up', meta:'Jump rope 3 min · Mobility (hips, shoulders, ankles)', xp:20, stats:{AGI:1} },
@@ -210,7 +210,39 @@ const WORKOUT_SETS = [
     ]}
   ],
 
-  // SET 2: High Intensity Mixed Training
+  // SET 2: Martial Arts Focused (With New Combat Options)
+  [
+    { title:'Day 1 — Strength + Explosive Power', subtitle:'Gun Park Style', isBoss:false, quests:[
+      { id:'d1-warm', name:'Warm-Up', meta:'Jump rope 3 min · Mobility (hips, shoulders, ankles)', xp:20, stats:{AGI:1} },
+      { id:'d1-strength', name:'Strength Block', meta:'Squats 5×5 · Pull-ups 5×max · Push-ups 5×5–10 · Romanian deadlift 4×6 · Farmer carries 4×40m', xp:70, stats:{STR:4, VIT:2} },
+      { id:'d1-explosive', name:'Explosive Block', meta:'Box jumps 5×3 · Medicine ball throws 4×5', xp:50, stats:{STR:2, AGI:2} }
+    ]},
+    { title:'Day 2 — Speed + Footwork', subtitle:'James Lee Style', isBoss:false, quests:[
+      { id:'d2-footwork', name:'Footwork Drills', meta:'Ladder drills 10min · Shadow boxing with movement 5×3min · Angle exits 10min · Sprint starts 10×20m', xp:60, stats:{AGI:3, TEC:1} },
+      { id:'d2-skill', name:'Fighting Skill', meta:'Jab-cross movement 5 rounds · Defense slips + counters 5 rounds', xp:60, stats:{TEC:3, AGI:1} }
+    ]},
+    { title:'Day 3 — Endurance + Conditioning', subtitle:'Gun Park Style — clear one trial', isBoss:false, quests:[
+      { id:'d3-run', name:'Option A: Steady Run', meta:'5–8km steady pace', xp:90, stats:{END:4}, group:'d3' },
+      { id:'d3-fight', name:'Option B: Fight Conditioning', meta:'Heavy bag 5×3min · Burpees 5×15 · Kettlebell swings 5×20 · Jump rope 10min', xp:90, stats:{END:3, STR:1}, group:'d3' }
+    ]},
+    { title:'Day 4 — Upper Body Strength + Athleticism', subtitle:'', isBoss:false, quests:[
+      { id:'d4-upper', name:'Upper Strength', meta:'Overhead press 4×6 · Weighted pull-ups 4×6 · Dips 4×10 · Rows 4×8 · Push-ups 100 total (broken sets)', xp:80, stats:{STR:4} },
+      { id:'d4-core', name:'Core', meta:'Hanging leg raises 4×12 · Planks 3×1min', xp:40, stats:{VIT:3} }
+    ]},
+    { title:'Day 5 — Combat Training Variety', subtitle:'Choose your discipline for today\'s session', isBoss:false, quests:[
+      { id:'d5-taekwondo', name:'Taekwondo Session', meta:'Kicking drills — roundhouse, side, back kick 5×10 each leg · Flexibility & splits work 15min · Poomsae (pattern) practice · Kyorugi (sparring) rounds', xp:110, stats:{AGI:3, TEC:3, END:1}, group:'d5' },
+      { id:'d5-kyokushin', name:'Kyokushin Karate Session', meta:'Kihon (basics) drills · Kata practice · Kumite (sparring) rounds · Controlled body conditioning · Breathing/kiai drills', xp:110, stats:{STR:2, TEC:3, VIT:2}, group:'d5' },
+      { id:'d5-combat', name:'Boxing / Muay Thai / MMA / BJJ Session', meta:'Technique work · Controlled sparring · Conditioning', xp:110, stats:{TEC:3, AGI:2, END:2}, group:'d5' }
+    ]},
+    { title:'Day 6 — Monster Mode Conditioning', subtitle:'Gate Trial', isBoss:true, quests:[
+      { id:'d6-circuit', name:'Monster Mode Circuit', meta:'5 rounds: 20 push-ups · 20 squats · 10 pull-ups · 20 sit-ups · 200m sprint. Rest 2–3min between rounds.', xp:220, stats:{STR:3, AGI:3, VIT:2, END:3} }
+    ]},
+    { title:'Day 7 — Recovery', subtitle:'', isBoss:false, quests:[
+      { id:'d7-recovery', name:'Active Recovery', meta:'Walking · Stretching · Mobility · Light swim or cycle', xp:30, stats:{VIT:2} }
+    ]}
+  ],
+
+  // SET 3: High Intensity Mixed Training
   [
     { title:'Day 1 — Power Endurance Mix', subtitle:'Explosive Strength Focus', isBoss:false, quests:[
       { id:'d1-warm', name:'Dynamic Warm-Up', meta:'10 min light cardio · Dynamic stretching · Activation drills', xp:25, stats:{AGI:1, END:1} },
@@ -229,8 +261,10 @@ const WORKOUT_SETS = [
       { id:'d4-chest', name:'Chest Focus', meta:'Barbell bench 4×6 · Incline dumbbell 4×8 · Cable flies 3×12', xp:85, stats:{STR:4, VIT:1} },
       { id:'d4-abs', name:'Core Blaster', meta:'Ab wheel 4×10 · Cable crunches 4×15 · Pallof press 3×12', xp:45, stats:{VIT:3} }
     ]},
-    { title:'Day 5 — Combat Training', subtitle:'Kickboxing or Muay Thai Class', isBoss:false, quests:[
-      { id:'d5-combat', name:'Full Combat Session', meta:'Pad work · Heavy bag · Light sparring · Conditioning rounds', xp:135, stats:{TEC:3, AGI:2, END:2, STR:1} }
+    { title:'Day 5 — Combat Training Variety', subtitle:'Choose your discipline for today\'s session', isBoss:false, quests:[
+      { id:'d5-taekwondo', name:'Taekwondo Session', meta:'Kicking drills — roundhouse, side, back kick 5×10 each leg · Flexibility & splits work 15min · Poomsae (pattern) practice · Kyorugi (sparring) rounds', xp:110, stats:{AGI:3, TEC:3, END:1}, group:'d5' },
+      { id:'d5-kyokushin', name:'Kyokushin Karate Session', meta:'Kihon (basics) drills · Kata practice · Kumite (sparring) rounds · Controlled body conditioning · Breathing/kiai drills', xp:110, stats:{STR:2, TEC:3, VIT:2}, group:'d5' },
+      { id:'d5-combat', name:'Boxing / Muay Thai / MMA / BJJ Session', meta:'Technique work · Controlled sparring · Conditioning', xp:110, stats:{TEC:3, AGI:2, END:2}, group:'d5' }
     ]},
     { title:'Day 6 — Beast Mode Test', subtitle:'Gate Trial - Ultimate Challenge', isBoss:true, quests:[
       { id:'d6-beast', name:'Beast Mode Gauntlet', meta:'3 rounds: 50 push-ups · 40 squats · 30 pull-ups · 20 handstand push-ups · 10 muscle-ups. Minimal rest.', xp:250, stats:{STR:4, AGI:2, VIT:3, END:4, TEC:1} }
@@ -240,7 +274,7 @@ const WORKOUT_SETS = [
     ]}
   ],
 
-  // SET 3: Calisthenics Mastery
+  // SET 4: Calisthenics Mastery
   [
     { title:'Day 1 — Upper Body Calisthenics', subtitle:'Bodyweight Strength', isBoss:false, quests:[
       { id:'d1-warm', name:'Warm-Up Routine', meta:'Arm circles · Push-up progressions · Band stretches', xp:20, stats:{VIT:1} },
@@ -259,8 +293,10 @@ const WORKOUT_SETS = [
       { id:'d4-legs', name:'Leg Strength', meta:'Pistol squat progressions 5×5 · Single-leg deadlifts 5×6 · Jump squats 5×12', xp:85, stats:{STR:4, AGI:1} },
       { id:'d4-burn', name:'Leg Burn', meta:'Bulgarian split squats 4×10 · Glute bridges 4×15 · Step-ups 4×20', xp:45, stats:{VIT:3, END:1} }
     ]},
-    { title:'Day 5 — Wrestling or BJJ', subtitle:'Grappling Mastery', isBoss:false, quests:[
-      { id:'d5-grapple', name:'Grappling Session', meta:'Takedown drills · Position work · Live rolling · Conditioning', xp:140, stats:{TEC:4, STR:2, END:2, AGI:1} }
+    { title:'Day 5 — Combat Training Variety', subtitle:'Choose your discipline for today\'s session', isBoss:false, quests:[
+      { id:'d5-taekwondo', name:'Taekwondo Session', meta:'Kicking drills — roundhouse, side, back kick 5×10 each leg · Flexibility & splits work 15min · Poomsae (pattern) practice · Kyorugi (sparring) rounds', xp:110, stats:{AGI:3, TEC:3, END:1}, group:'d5' },
+      { id:'d5-kyokushin', name:'Kyokushin Karate Session', meta:'Kihon (basics) drills · Kata practice · Kumite (sparring) rounds · Controlled body conditioning · Breathing/kiai drills', xp:110, stats:{STR:2, TEC:3, VIT:2}, group:'d5' },
+      { id:'d5-combat', name:'Boxing / Muay Thai / MMA / BJJ Session', meta:'Technique work · Controlled sparring · Conditioning', xp:110, stats:{TEC:3, AGI:2, END:2}, group:'d5' }
     ]},
     { title:'Day 6 — Superhuman Trial', subtitle:'Gate Trial - Max Out', isBoss:true, quests:[
       { id:'d6-superhuman', name:'Peak Performance', meta:'AMRAP 20min: 3 muscle-ups · 6 handstand push-ups · 9 burpees. Last man standing wins.', xp:240, stats:{STR:4, AGI:3, VIT:3, END:3, TEC:2} }
@@ -430,8 +466,6 @@ function updateProfile(field, value){
 }
 
 function refreshWorkout(){
-  // Force switch to next workout set
-  const weekNum = getWeekNumber();
   state.workoutSetIndex = (state.workoutSetIndex + 1) % WORKOUT_SETS.length;
   state.cycleDay = 1;
   state.today = { date: todayStr(), quests: loadDayQuests(1) };
@@ -475,7 +509,7 @@ function render(){
     <div class="weight-entry"><span>${e.date}</span><span>${e.weight} kg</span></div>
   `).join('') || `<div class="weight-entry"><span>No entries yet</span></div>`;
 
-  const setNames = ['Set I: Classic', 'Set II: High Intensity', 'Set III: Calisthenics'];
+  const setNames = ['Set I: Classic', 'Set II: Martial Arts', 'Set III: High Intensity', 'Set IV: Calisthenics'];
   const currentSetName = setNames[state.workoutSetIndex];
 
   document.getElementById('app').innerHTML = `
